@@ -1,4 +1,5 @@
 import argparse
+from pydoc import Helper
 import torch
 import torch.backends.cudnn as cudnn
 from torchvision import models
@@ -11,16 +12,18 @@ model_names = sorted(name for name in models.__dict__
                      and callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='PyTorch SimCLR')
-parser.add_argument('-data', metavar='DIR', default='./datasets',
+parser.add_argument('-data', metavar='DIR', default='../../data',
                     help='path to dataset')
-parser.add_argument('-dataset-name', default='stl10',
-                    help='dataset name', choices=['stl10', 'cifar10'])
+parser.add_argument('-dataset-name', default='imagenet',
+                    help='dataset name', choices=['stl10', 'cifar10', 'imagenet'])
+parser.add_argument('--adain', action='store_true',
+                    help='add style transfer augmentation')
 parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18',
                     choices=model_names,
                     help='model architecture: ' +
                          ' | '.join(model_names) +
                          ' (default: resnet50)')
-parser.add_argument('-j', '--workers', default=12, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -64,7 +67,7 @@ def main():
         args.device = torch.device('cpu')
         args.gpu_index = -1
 
-    dataset = ContrastiveLearningDataset(args.data)
+    dataset = ContrastiveLearningDataset(args, args.data, args.adain)
 
     train_dataset = dataset.get_dataset(args.dataset_name, args.n_views)
 
@@ -80,6 +83,7 @@ def main():
                                                            last_epoch=-1)
 
     #  It’s a no-op if the 'gpu_index' argument is a negative integer or None.
+    torch.multiprocessing.set_start_method('spawn')
     with torch.cuda.device(args.gpu_index):
         simclr = SimCLR(model=model, optimizer=optimizer, scheduler=scheduler, args=args)
         simclr.train(train_loader)

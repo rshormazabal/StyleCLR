@@ -1,0 +1,7 @@
+__pycache__/*
+**/__pycache__/*
+./data_aug/pretrained_model/
+*pth.tar
+runs/*
+*.png
+*.jpg
