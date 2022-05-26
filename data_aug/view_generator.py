@@ -79,8 +79,8 @@ class ContrastiveLearningViewGenerator(object):
 
     def __call__(self, x):
         if self.adain:
-            outputs=[self.base_transform(x)]
-            for i in range(self.n_views-1):
+            outputs=[]
+            for i in range(self.n_views):
                 content = self.content_tf(x)
                 style_path = self.style_images[random.randint(0,len(self.style_images)-1)] #randomly select style image
                 style = self.style_tf(Image.open(str(style_path)).convert('RGB'))
